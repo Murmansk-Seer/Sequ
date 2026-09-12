@@ -1,16 +1,25 @@
 import axios from 'axios';
 
-async function getUnityNoticeInfo(
+export interface UnityNoticeItem {
+  type: number;
+  text?: string;
+}
+
+/** 维护公告（type=3 视为维护中） */
+export async function getUnityNoticeInfo(
   url: string = 'http://unity-notice.61.com/unity_notice/',
-) {
-  const { data } = await axios.get(url + `?t=${Date.now()}`);
+): Promise<UnityNoticeItem[]> {
+  const { data } = await axios.get<UnityNoticeItem[]>(url + `?t=${Date.now()}`);
   if (!Array.isArray(data)) {
     throw new Error('notice 数据格式错误');
   }
   return data;
 }
 
-function parseUnityNotice(noticeList: any[]) {
+export function parseUnityNotice(noticeList: UnityNoticeItem[]): {
+  status: '维护' | '开服';
+  info: string;
+} {
   const maintenanceNotice = noticeList.find((n) => n.type === 3);
 
   if (maintenanceNotice) {
@@ -25,5 +34,3 @@ function parseUnityNotice(noticeList: any[]) {
     info: '当前unity已开服',
   };
 }
-
-export { getUnityNoticeInfo, parseUnityNotice };
